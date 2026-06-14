@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Star Buddies – Mauna Games</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(160deg, #f0f4ff 0%, #fff8f0 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#game-root {
+  background: white;
+  border-radius: 24px;
+  padding: 0;
+  width: 100%;
+  max-width: 480px;
+  min-height: 600px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+}
+.screen { display: none; padding: 24px; flex-direction: column; align-items: center; }
+.screen.active { display: flex; }
+.game-header {
+  width: 100%; display: flex;
+  justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
+.stars-display { display: flex; gap: 4px; align-items: center; font-size: 20px; font-weight: 600; color: #b8860b; }
+.level-badge { background: #e8f4fd; color: #1a6fa8; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+.teacher-btn { background: transparent; border: 1px solid #ddd; padding: 4px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; color: #666; }
+.teacher-btn:hover { background: #f5f5f5; }
+.prompt-text { font-size: 22px; font-weight: 600; color: #2d2d2d; text-align: center; margin-bottom: 8px; line-height: 1.4; }
+.prompt-sub { font-size: 15px; color: #666; margin-bottom: 24px; text-align: center; }
+.target-display {
+  width: 120px; height: 120px; border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56px; margin-bottom: 28px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border: 3px solid rgba(255,255,255,0.8);
+  transition: transform 0.15s;
+}
+.choices-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 360px; margin-bottom: 24px; }
+.choice-btn {
+  height: 90px; border-radius: 18px; border: 3px solid rgba(255,255,255,0.6);
+  font-size: 40px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.12s, box-shadow 0.12s;
+  position: relative; box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+.choice-btn:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(0,0,0,0.14); }
+.choice-btn:active { transform: scale(0.97); }
+.choice-btn.correct { border-color: #4caf50 !important; box-shadow: 0 0 0 4px #c8e6c9, 0 4px 16px rgba(76,175,80,0.3); animation: bounceIn 0.4s ease; }
+.choice-btn.wrong { border-color: #ef9a9a !important; animation: shake 0.4s ease; }
+@keyframes bounceIn { 0%{transform:scale(1)}40%{transform:scale(1.15)}70%{transform:scale(0.95)}100%{transform:scale(1)} }
+@keyframes shake { 0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)} }
+.choice-label { position: absolute; bottom: 6px; font-size: 11px; font-weight: 500; color: rgba(0,0,0,0.45); }
+.feedback-bar { height: 48px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; border-radius: 12px; width: 100%; max-width: 360px; transition: all 0.3s; min-height: 48px; }
+.feedback-bar.good { background: #e8f5e9; color: #2e7d32; }
+.feedback-bar.try  { background: #fff3e0; color: #e65100; }
+.feedback-bar.idle { background: transparent; color: transparent; }
+.progress-row { display: flex; gap: 8px; margin-top: 16px; justify-content: center; }
+.pip { width: 12px; height: 12px; border-radius: 50%; background: #ddd; transition: background 0.3s; }
+.pip.done { background: #ffd600; }
+.pip.current { background: #42a5f5; }
+.home-logo { font-size: 72px; margin: 24px 0 8px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)} }
+.home-title { font-size: 30px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+.home-sub { font-size: 15px; color: #666; margin-bottom: 6px; }
+.brand-tag { font-size: 12px; color: #bbb; margin-bottom: 28px; }
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 360px; margin-bottom: 20px; }
+.mode-card { background: #fafafa; border-radius: 18px; padding: 20px 12px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+.mode-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.mode-card.selected { border-color: #5c6bc0; background: #f0f2ff; }
+.mode-icon { font-size: 36px; margin-bottom: 8px; }
+.mode-name { font-size: 14px; font-weight: 600; color: #333; }
+.mode-desc { font-size: 11px; color: #999; margin-top: 2px; }
+.diff-row { display: flex; gap: 8px; margin-bottom: 24px; }
+.diff-btn { flex: 1; padding: 8px; border-radius: 10px; border: 2px solid #e0e0e0; background: white; font-size: 13px; cursor: pointer; transition: all 0.2s; color: #555; }
+.diff-btn.active { background: #5c6bc0; color: white; border-color: #5c6bc0; }
+.start-btn { background: #5c6bc0; color: white; border: none; border-radius: 16px; font-size: 18px; font-weight: 600; padding: 14px 48px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(92,107,192,0.4); }
+.start-btn:hover { background: #3949ab; transform: translateY(-2px); }
+.win-emoji { font-size: 80px; margin: 20px 0; animation: float 2s ease-in-out infinite; }
+.win-title { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+.win-msg { font-size: 16px; color: #555; margin-bottom: 8px; }
+.win-score { font-size: 22px; color: #f9a825; margin-bottom: 28px; }
+.win-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.win-btn { padding: 14px; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+.win-btn.primary { background: #5c6bc0; color: white; }
+.win-btn.secondary { background: white; color: #5c6bc0; border: 2px solid #5c6bc0; }
+.win-btn:hover { transform: translateY(-2px); }
+.teacher-panel { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 10; border-radius: 24px; }
+.teacher-panel.open { display: flex; }
+.teacher-card { background: white; border-radius: 20px; padding: 24px; width: 300px; }
+.teacher-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1a1a2e; }
+.stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+.stat-label { color: #666; }
+.stat-val { font-weight: 600; color: #333; }
+.close-panel-btn { margin-top: 16px; width: 100%; padding: 10px; background: #f5f5f5; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; }
+.close-panel-btn:hover { background: #eee; }
+.footer-brand { font-size: 11px; color: #ccc; text-align: center; padding: 12px 0 4px; }
+</style>
+</head>
+<body>
+<div id="game-root">
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen active">
+    <div class="home-logo">🌟</div>
+    <div class="home-title">Star Buddies</div>
+    <div class="home-sub">A gentle learning game for every learner</div>
+    <div class="brand-tag">by Mauna Games</div>
+    <div class="mode-grid" id="mode-grid">
+      <div class="mode-card selected" data-mode="shapes" onclick="selectMode(this,'shapes')">
+        <div class="mode-icon">🔺</div>
+        <div class="mode-name">Shapes</div>
+        <div class="mode-desc">Match the shape</div>
+      </div>
+      <div class="mode-card" data-mode="colors" onclick="selectMode(this,'colors')">
+        <div class="mode-icon">🎨</div>
+        <div class="mode-name">Colors</div>
+        <div class="mode-desc">Match the color</div>
+      </div>
+      <div class="mode-card" data-mode="animals" onclick="selectMode(this,'animals')">
+        <div class="mode-icon">🐶</div>
+        <div class="mode-name">Animals</div>
+        <div class="mode-desc">Match the animal</div>
+      </div>
+      <div class="mode-card" data-mode="numbers" onclick="selectMode(this,'numbers')">
+        <div class="mode-icon">🔢</div>
+        <div class="mode-name">Numbers</div>
+        <div class="mode-desc">Match the number</div>
+      </div>
+    </div>
+    <div style="font-size:14px;color:#888;margin-bottom:8px;align-self:flex-start;max-width:360px;">Difficulty</div>
+    <div class="diff-row" style="width:100%;max-width:360px;">
+      <button class="diff-btn active" onclick="setDiff(this,'easy')">🌱 Easy</button>
+      <button class="diff-btn" onclick="setDiff(this,'medium')">⭐ Medium</button>
+      <button class="diff-btn" onclick="setDiff(this,'hard')">🚀 Hard</button>
+    </div>
+    <button class="start-btn" onclick="startGame()">Let's Play! 🎮</button>
+    <div class="footer-brand">© 2025 Mauna Games · Made with ♥ for SEN learners</div>
+  </div>
+
+  <!-- GAME -->
+  <div id="screen-game" class="screen">
+    <div class="game-header">
+      <div class="stars-display">⭐ <span id="star-count">0</span></div>
+      <div class="level-badge" id="level-badge">Round 1 of 6</div>
+      <button class="teacher-btn" onclick="openTeacher()">👩‍🏫 Teacher</button>
+    </div>
+    <div class="prompt-text" id="prompt-text">Find the matching shape!</div>
+    <div class="prompt-sub" id="prompt-sub">Tap the one that matches</div>
+    <div class="target-display" id="target-display">🔴</div>
+    <div class="choices-grid" id="choices-grid"></div>
+    <div class="feedback-bar idle" id="feedback-bar"> </div>
+    <div class="progress-row" id="progress-row"></div>
+  </div>
+
+  <!-- WIN -->
+  <div id="screen-win" class="screen">
+    <div class="win-emoji" id="win-emoji">🎉</div>
+    <div class="win-title" id="win-title">Amazing job!</div>
+    <div class="win-msg" id="win-msg">You finished all the rounds!</div>
+    <div class="win-score" id="win-score">⭐ 5 stars earned</div>
+    <div class="win-btns">
+      <button class="win-btn primary" onclick="startGame()">Play Again 🔁</button>
+      <button class="win-btn secondary" onclick="goHome()">Choose Mode 🏠</button>
+    </div>
+    <div class="footer-brand" style="margin-top:24px;">© 2025 Mauna Games</div>
+  </div>
+
+  <!-- TEACHER PANEL -->
+  <div class="teacher-panel" id="teacher-panel">
+    <div class="teacher-card">
+      <h3>👩‍🏫 Teacher Dashboard</h3>
+      <div class="stat-row"><span class="stat-label">Current mode</span><span class="stat-val" id="tp-mode">—</span></div>
+      <div class="stat-row"><span class="stat-label">Difficulty</span><span class="stat-val" id="tp-diff">—</span></div>
+      <div class="stat-row"><span class="stat-label">Stars earned</span><span class="stat-val" id="tp-stars">—</span></div>
+      <div class="stat-row"><span class="stat-label">Correct answers</span><span class="stat-val" id="tp-correct">—</span></div>
+      <div class="stat-row"><span class="stat-label">Total attempts</span><span class="stat-val" id="tp-attempts">—</span></div>
+      <div class="stat-row"><span class="stat-label">Accuracy</span><span class="stat-val" id="tp-accuracy">—</span></div>
+      <div class="stat-row"><span class="stat-label">Rounds done</span><span class="stat-val" id="tp-rounds">—</span></div>
+      <div style="font-size:12px;color:#bbb;margin-top:12px;line-height:1.6;">💡 Easy = 2 choices · Medium = 3 · Hard = 4</div>
+      <button class="close-panel-btn" onclick="closeTeacher()">Close</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const MODES = {
+  shapes: {
+    name:'Shapes', prompt:'Find the matching shape!', sub:'Tap the shape that looks the same',
+    items:[
+      {id:'circle',emoji:'🔵',label:'Circle',color:'#bbdefb'},
+      {id:'triangle',emoji:'🔺',label:'Triangle',color:'#ffe0b2'},
+      {id:'square',emoji:'🟥',label:'Square',color:'#ffccbc'},
+      {id:'star',emoji:'⭐',label:'Star',color:'#fff9c4'},
+      {id:'heart',emoji:'💜',label:'Heart',color:'#f3e5f5'},
+      {id:'diamond',emoji:'💎',label:'Diamond',color:'#e1f5fe'},
+    ]
+  },
+  colors: {
+    name:'Colors', prompt:'Find the matching color!', sub:'Tap the circle with the same color',
+    items:[
+      {id:'red',emoji:'🔴',label:'Red',color:'#ffcdd2'},
+      {id:'blue',emoji:'🔵',label:'Blue',color:'#bbdefb'},
+      {id:'green',emoji:'🟢',label:'Green',color:'#c8e6c9'},
+      {id:'yellow',emoji:'🟡',label:'Yellow',color:'#fff9c4'},
+      {id:'purple',emoji:'🟣',label:'Purple',color:'#e1bee7'},
+      {id:'orange',emoji:'🟠',label:'Orange',color:'#ffe0b2'},
+    ]
+  },
+  animals: {
+    name:'Animals', prompt:'Find the matching animal!', sub:'Tap the animal that looks the same',
+    items:[
+      {id:'cat',emoji:'🐱',label:'Cat',color:'#f3e5f5'},
+      {id:'dog',emoji:'🐶',label:'Dog',color:'#fff3e0'},
+      {id:'rabbit',emoji:'🐰',label:'Rabbit',color:'#e8f5e9'},
+      {id:'fish',emoji:'🐟',label:'Fish',color:'#e1f5fe'},
+      {id:'elephant',emoji:'🐘',label:'Elephant',color:'#ede7f6'},
+      {id:'penguin',emoji:'🐧',label:'Penguin',color:'#e0f7fa'},
+    ]
+  },
+  numbers: {
+    name:'Numbers', prompt:'Find the matching number!', sub:'Tap the number that is the same',
+    items:[
+      {id:'one',emoji:'1️⃣',label:'One',color:'#fff9c4'},
+      {id:'two',emoji:'2️⃣',label:'Two',color:'#ffccbc'},
+      {id:'three',emoji:'3️⃣',label:'Three',color:'#c8e6c9'},
+      {id:'four',emoji:'4️⃣',label:'Four',color:'#bbdefb'},
+      {id:'five',emoji:'5️⃣',label:'Five',color:'#f3e5f5'},
+      {id:'six',emoji:'6️⃣',label:'Six',color:'#ffe0b2'},
+    ]
+  }
+};
+
+const ROUNDS = 6;
+const CHOICES = {easy:2, medium:3, hard:4};
+let state = { mode:'shapes', difficulty:'easy', round:0, stars:0, correctCount:0, attempts:0, currentAnswer:null, answered:false };
+
+function selectMode(el, mode) {
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.mode = mode;
+}
+function setDiff(el, diff) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.difficulty = diff;
+}
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+function startGame() {
+  state.stars=0; state.round=0; state.correctCount=0; state.attempts=0;
+  showScreen('game');
+  buildPips();
+  nextRound();
+}
+function goHome() { showScreen('home'); }
+function buildPips() {
+  const row = document.getElementById('progress-row');
+  row.innerHTML = '';
+  for(let i=0;i<ROUNDS;i++){
+    const p=document.createElement('div');
+    p.className='pip'+(i===0?' current':'');
+    p.id='pip-'+i;
+    row.appendChild(p);
+  }
+}
+function nextRound() {
+  if(state.round>=ROUNDS){ endGame(); return; }
+  const md = MODES[state.mode];
+  const shuffled = [...md.items].sort(()=>Math.random()-0.5);
+  const target = shuffled[0];
+  const n = CHOICES[state.difficulty];
+  const choices = shuffled.slice(0,n).sort(()=>Math.random()-0.5);
+  state.currentAnswer = target.id;
+  state.answered = false;
+  document.getElementById('prompt-text').textContent = md.prompt;
+  document.getElementById('prompt-sub').textContent = md.sub;
+  document.getElementById('level-badge').textContent = 'Round '+(state.round+1)+' of '+ROUNDS;
+  document.getElementById('star-count').textContent = state.stars;
+  const td = document.getElementById('target-display');
+  td.textContent = target.emoji;
+  td.style.background = target.color;
+  const grid = document.getElementById('choices-grid');
+  grid.innerHTML='';
+  grid.style.gridTemplateColumns = n===3 ? 'repeat(3,1fr)' : 'repeat(2,1fr)';
+  choices.forEach(item=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.style.background=item.color;
+    btn.innerHTML=item.emoji+'<span class="choice-label">'+item.label+'</span>';
+    btn.onclick=()=>handleChoice(btn,item.id);
+    grid.appendChild(btn);
+  });
+  const fb=document.getElementById('feedback-bar');
+  fb.textContent=' '; fb.className='feedback-bar idle';
+}
+function handleChoice(btn,choiceId) {
+  if(state.answered) return;
+  state.answered=true; state.attempts++;
+  const correct = choiceId===state.currentAnswer;
+  const fb=document.getElementById('feedback-bar');
+  if(correct){
+    state.correctCount++; state.stars++;
+    btn.classList.add('correct');
+    fb.textContent='✅  Amazing! That\'s right!';
+    fb.className='feedback-bar good';
+    document.getElementById('star-count').textContent=state.stars;
+    const pip=document.getElementById('pip-'+state.round);
+    if(pip){pip.classList.remove('current');pip.classList.add('done');}
+    const next=document.getElementById('pip-'+(state.round+1));
+    if(next) next.classList.add('current');
+    state.round++;
+    setTimeout(nextRound,1400);
+  } else {
+    btn.classList.add('wrong');
+    fb.textContent='💛  Nice try! Tap the right one!';
+    fb.className='feedback-bar try';
+    state.answered=false;
+  }
+}
+function endGame() {
+  const acc = state.attempts>0 ? Math.round((state.correctCount/state.attempts)*100) : 0;
+  const titles=['Amazing job! 🌟','Superstar! 🚀','You did it! 🎊','Brilliant! 💫'];
+  const emojis=['🎉','🏆','🌟','🥳','💫'];
+  document.getElementById('win-title').textContent=titles[Math.floor(Math.random()*titles.length)];
+  document.getElementById('win-emoji').textContent=emojis[Math.floor(Math.random()*emojis.length)];
+  document.getElementById('win-score').textContent='⭐ '+state.stars+' stars earned · '+acc+'% accuracy';
+  showScreen('win');
+}
+function openTeacher() {
+  const acc=state.attempts>0?Math.round((state.correctCount/state.attempts)*100)+'%':'N/A';
+  document.getElementById('tp-mode').textContent=MODES[state.mode].name;
+  document.getElementById('tp-diff').textContent=state.difficulty.charAt(0).toUpperCase()+state.difficulty.slice(1);
+  document.getElementById('tp-stars').textContent=state.stars;
+  document.getElementById('tp-correct').textContent=state.correctCount;
+  document.getElementById('tp-attempts').textContent=state.attempts;
+  document.getElementById('tp-accuracy').textContent=acc;
+  document.getElementById('tp-rounds').textContent=state.round+' / '+ROUNDS;
+  document.getElementById('teacher-panel').classList.add('open');
+}
+function closeTeacher() { document.getElementById('teacher-panel').classList.remove('open'); }
+</script>
+</body>
+</html>
