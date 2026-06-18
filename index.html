@@ -2,193 +2,336 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Star Buddies – Mauna Games</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body {
+  height: 100%;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: linear-gradient(160deg, #f0f4ff 0%, #fff8f0 100%);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
+  background: #0f0c29;
+  touch-action: manipulation;
 }
+body {
+  display: flex; align-items: center; justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+}
+
+.bg-stars { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+.bg-star { position:absolute; border-radius:50%; background:white; animation:twinkle 3s infinite; }
+@keyframes twinkle { 0%,100%{opacity:0.2;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+
 #game-root {
-  background: white;
-  border-radius: 24px;
-  padding: 0;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   width: 100%;
+  height: 100%;
   max-width: 480px;
-  min-height: 600px;
+  max-height: 900px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
 }
-.screen { display: none; padding: 24px; flex-direction: column; align-items: center; }
-.screen.active { display: flex; }
-.game-header {
-  width: 100%; display: flex;
-  justify-content: space-between; align-items: center;
-  margin-bottom: 16px;
+
+@media (min-width: 540px) {
+  #game-root { border-radius: 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05); height: 92vh; }
 }
-.stars-display { display: flex; gap: 4px; align-items: center; font-size: 20px; font-weight: 600; color: #b8860b; }
-.level-badge { background: #e8f4fd; color: #1a6fa8; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
-.teacher-btn { background: transparent; border: 1px solid #ddd; padding: 4px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; color: #666; }
-.teacher-btn:hover { background: #f5f5f5; }
-.prompt-text { font-size: 22px; font-weight: 600; color: #2d2d2d; text-align: center; margin-bottom: 8px; line-height: 1.4; }
-.prompt-sub { font-size: 15px; color: #666; margin-bottom: 24px; text-align: center; }
-.target-display {
-  width: 120px; height: 120px; border-radius: 20px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 56px; margin-bottom: 28px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  border: 3px solid rgba(255,255,255,0.8);
-  transition: transform 0.15s;
+
+.particle { position:absolute; border-radius:50%; pointer-events:none; animation:burst 0.8s ease-out forwards; z-index:99; }
+@keyframes burst { 0%{opacity:1;transform:scale(1) translate(0,0)} 100%{opacity:0;transform:scale(0.3) translate(var(--tx),var(--ty))} }
+
+.screen {
+  display:none; flex-direction:column; align-items:center;
+  width: 100%; height: 100%;
+  padding: 12px 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
-.choices-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 360px; margin-bottom: 24px; }
-.choice-btn {
-  height: 90px; border-radius: 18px; border: 3px solid rgba(255,255,255,0.6);
-  font-size: 40px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: transform 0.12s, box-shadow 0.12s;
-  position: relative; box-shadow: 0 3px 12px rgba(0,0,0,0.08);
-}
-.choice-btn:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(0,0,0,0.14); }
-.choice-btn:active { transform: scale(0.97); }
-.choice-btn.correct { border-color: #4caf50 !important; box-shadow: 0 0 0 4px #c8e6c9, 0 4px 16px rgba(76,175,80,0.3); animation: bounceIn 0.4s ease; }
-.choice-btn.wrong { border-color: #ef9a9a !important; animation: shake 0.4s ease; }
-@keyframes bounceIn { 0%{transform:scale(1)}40%{transform:scale(1.15)}70%{transform:scale(0.95)}100%{transform:scale(1)} }
+.screen.active { display:flex; }
+.screen::-webkit-scrollbar { display: none; }
+
+.level-banner { width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-shrink:0; gap: 6px; }
+.stars-display { display:flex; gap:4px; align-items:center; font-size:clamp(13px,3.5vw,16px); font-weight:800; color:#ffd600; background:rgba(255,214,0,0.1); padding:4px 9px; border-radius:20px; border:1px solid rgba(255,214,0,0.3); white-space:nowrap; }
+.star-ico { width:15px; height:15px; fill:#ffd600; flex-shrink:0; }
+.lvl-badge { background:linear-gradient(135deg,#5c6bc0,#7c4dff); color:white; padding:4px 11px; border-radius:20px; font-size:clamp(11px,3vw,13px); font-weight:800; letter-spacing:0.3px; box-shadow:0 2px 12px rgba(124,77,255,0.4); white-space:nowrap; }
+.mode-toggle-row { display:flex; gap:6px; flex-shrink:0; }
+.mode-pill { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); padding:4px 9px; border-radius:10px; font-size:11px; cursor:pointer; color:rgba(255,255,255,0.6); display:flex; align-items:center; gap:4px; white-space:nowrap; }
+.mode-pill:active { background:rgba(255,255,255,0.12); }
+
+.xp-bar-wrap { width:100%; background:rgba(255,255,255,0.06); border-radius:10px; height:6px; margin-bottom:10px; overflow:hidden; border:1px solid rgba(255,255,255,0.08); flex-shrink:0; }
+.xp-bar { height:100%; border-radius:10px; background:linear-gradient(90deg,#5c6bc0,#7c4dff,#e040fb); transition:width 0.5s cubic-bezier(0.4,0,0.2,1); box-shadow:0 0 10px rgba(124,77,255,0.6); }
+
+.timer-row { width:100%; display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-shrink:0; display:none; }
+.timer-row.show { display:flex; }
+.timer-bar-wrap { flex:1; background:rgba(255,255,255,0.08); border-radius:10px; height:10px; overflow:hidden; }
+.timer-bar { height:100%; border-radius:10px; background:linear-gradient(90deg,#69f0ae,#ffd600,#ff5252); transition:width 0.1s linear; }
+.timer-num { font-size:13px; font-weight:800; color:white; min-width:22px; text-align:center; }
+
+.prompt-text { font-size:clamp(16px,4.2vw,20px); font-weight:800; color:white; text-align:center; margin-bottom:2px; line-height:1.25; flex-shrink:0; }
+.prompt-sub { font-size:clamp(11px,2.8vw,13px); color:rgba(255,255,255,0.45); margin-bottom:10px; text-align:center; flex-shrink:0; }
+
+.mid-area { flex: 1; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:0; width:100%; }
+
+.target-wrap { position:relative; margin-bottom:14px; flex-shrink:0; }
+.target-display { width:clamp(80px,22vw,120px); height:clamp(80px,22vw,120px); border-radius:22px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 32px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.1); animation:pulse-glow 2s ease-in-out infinite; position:relative; }
+@keyframes pulse-glow { 0%,100%{box-shadow:0 8px 32px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.1)} 50%{box-shadow:0 8px 32px rgba(0,0,0,0.4), 0 0 0 4px rgba(124,77,255,0.5), 0 0 30px rgba(124,77,255,0.2)} }
+.target-display svg { width:60%; height:60%; }
+.find-label { position:absolute; bottom:-20px; left:50%; transform:translateX(-50%); font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
+.combo-badge { position:absolute; top:-12px; right:-12px; background:linear-gradient(135deg,#ff6f00,#ff8f00); color:white; font-size:10px; font-weight:900; padding:3px 7px; border-radius:20px; box-shadow:0 2px 10px rgba(255,111,0,0.5); animation:popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275); display:none; }
+.combo-badge.show { display:block; }
+
+.choices-grid { display:grid; gap:8px; width:100%; max-width:380px; margin-bottom:10px; flex-shrink:0; }
+.choice-btn { border-radius:16px; border:2px solid rgba(255,255,255,0.08); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; transition:transform 0.12s, box-shadow 0.12s, border-color 0.2s; padding:clamp(8px,2.5vw,14px) 6px; background:rgba(255,255,255,0.04); position:relative; min-height: clamp(64px,16vw,90px); }
+.choice-btn svg { width:clamp(28px,9vw,42px); height:clamp(28px,9vw,42px); }
+.choice-btn span { font-size:clamp(10px,2.6vw,12px); font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:0.2px; }
+.choice-btn:active { transform:scale(0.96); }
+.choice-btn.correct { border-color:#4caf50 !important; background:rgba(76,175,80,0.12) !important; box-shadow:0 0 0 3px rgba(76,175,80,0.3); animation:bounceIn 0.4s ease; }
+.choice-btn.wrong { border-color:#ef5350 !important; background:rgba(239,83,80,0.1) !important; animation:shake 0.4s ease; }
+@keyframes bounceIn { 0%{transform:scale(1)}40%{transform:scale(1.12)}70%{transform:scale(0.96)}100%{transform:scale(1)} }
 @keyframes shake { 0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)} }
-.choice-label { position: absolute; bottom: 6px; font-size: 11px; font-weight: 500; color: rgba(0,0,0,0.45); }
-.feedback-bar { height: 48px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; border-radius: 12px; width: 100%; max-width: 360px; transition: all 0.3s; min-height: 48px; }
-.feedback-bar.good { background: #e8f5e9; color: #2e7d32; }
-.feedback-bar.try  { background: #fff3e0; color: #e65100; }
-.feedback-bar.idle { background: transparent; color: transparent; }
-.progress-row { display: flex; gap: 8px; margin-top: 16px; justify-content: center; }
-.pip { width: 12px; height: 12px; border-radius: 50%; background: #ddd; transition: background 0.3s; }
-.pip.done { background: #ffd600; }
-.pip.current { background: #42a5f5; }
-.home-logo { font-size: 72px; margin: 24px 0 8px; animation: float 3s ease-in-out infinite; }
-@keyframes float { 0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)} }
-.home-title { font-size: 30px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
-.home-sub { font-size: 15px; color: #666; margin-bottom: 6px; }
-.brand-tag { font-size: 12px; color: #bbb; margin-bottom: 28px; }
-.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 360px; margin-bottom: 20px; }
-.mode-card { background: #fafafa; border-radius: 18px; padding: 20px 12px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
-.mode-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
-.mode-card.selected { border-color: #5c6bc0; background: #f0f2ff; }
-.mode-icon { font-size: 36px; margin-bottom: 8px; }
-.mode-name { font-size: 14px; font-weight: 600; color: #333; }
-.mode-desc { font-size: 11px; color: #999; margin-top: 2px; }
-.diff-row { display: flex; gap: 8px; margin-bottom: 24px; }
-.diff-btn { flex: 1; padding: 8px; border-radius: 10px; border: 2px solid #e0e0e0; background: white; font-size: 13px; cursor: pointer; transition: all 0.2s; color: #555; }
-.diff-btn.active { background: #5c6bc0; color: white; border-color: #5c6bc0; }
-.start-btn { background: #5c6bc0; color: white; border: none; border-radius: 16px; font-size: 18px; font-weight: 600; padding: 14px 48px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(92,107,192,0.4); }
-.start-btn:hover { background: #3949ab; transform: translateY(-2px); }
-.win-emoji { font-size: 80px; margin: 20px 0; animation: float 2s ease-in-out infinite; }
-.win-title { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
-.win-msg { font-size: 16px; color: #555; margin-bottom: 8px; }
-.win-score { font-size: 22px; color: #f9a825; margin-bottom: 28px; }
-.win-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
-.win-btn { padding: 14px; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
-.win-btn.primary { background: #5c6bc0; color: white; }
-.win-btn.secondary { background: white; color: #5c6bc0; border: 2px solid #5c6bc0; }
-.win-btn:hover { transform: translateY(-2px); }
-.teacher-panel { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 10; border-radius: 24px; }
-.teacher-panel.open { display: flex; }
-.teacher-card { background: white; border-radius: 20px; padding: 24px; width: 300px; }
-.teacher-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1a1a2e; }
-.stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-.stat-label { color: #666; }
-.stat-val { font-weight: 600; color: #333; }
-.close-panel-btn { margin-top: 16px; width: 100%; padding: 10px; background: #f5f5f5; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; }
-.close-panel-btn:hover { background: #eee; }
-.footer-brand { font-size: 11px; color: #ccc; text-align: center; padding: 12px 0 4px; }
+
+.feedback-bar { min-height:38px; display:flex; align-items:center; justify-content:center; font-size:clamp(13px,3.5vw,16px); font-weight:800; border-radius:12px; width:100%; max-width:380px; transition:all 0.3s; padding:4px 12px; text-align:center; flex-shrink:0; }
+.feedback-bar.good { background:rgba(76,175,80,0.15); color:#69f0ae; border:1px solid rgba(76,175,80,0.3); }
+.feedback-bar.try  { background:rgba(255,152,0,0.12); color:#ffb74d; border:1px solid rgba(255,152,0,0.25); }
+.feedback-bar.idle { background:transparent; color:transparent; border:1px solid transparent; }
+
+.progress-row { display:flex; gap:5px; margin-top:8px; justify-content:center; align-items:center; flex-shrink:0; flex-wrap:wrap; }
+.pip { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.12); transition:all 0.3s; }
+.pip.done { background:#ffd600; box-shadow:0 0 6px rgba(255,214,0,0.6); }
+.pip.current { background:#7c4dff; box-shadow:0 0 8px rgba(124,77,255,0.8); transform:scale(1.3); }
+
+.level-complete { position:absolute; top:0;left:0;right:0;bottom:0; background:rgba(15,12,41,0.94); display:none; align-items:center; justify-content:center; flex-direction:column; gap:8px; z-index:20; padding: 16px; overflow-y:auto; }
+.level-complete.show { display:flex; }
+.lc-icon { font-size:clamp(48px,12vw,72px); animation:popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
+@keyframes popIn { 0%{transform:scale(0)}100%{transform:scale(1)} }
+.lc-title { font-size:clamp(20px,5.5vw,28px); font-weight:900; color:white; text-align:center; }
+.lc-sub { font-size:clamp(12px,3.2vw,15px); color:rgba(255,255,255,0.5); text-align:center; padding:0 10px; }
+.lc-score { font-size:clamp(16px,4.5vw,22px); font-weight:800; color:#ffd600; }
+.lc-next { background:linear-gradient(135deg,#5c6bc0,#7c4dff); color:white; border:none; border-radius:16px; font-size:clamp(14px,3.8vw,17px); font-weight:800; padding:12px 36px; cursor:pointer; transition:all 0.2s; box-shadow:0 6px 20px rgba(124,77,255,0.5); margin-top:6px; }
+.lc-retry { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.15); border-radius:12px; font-size:clamp(12px,3.2vw,14px); font-weight:700; padding:9px 24px; cursor:pointer; transition:all 0.2s; }
+.lc-stars { display:flex; gap:6px; }
+.lc-star { width:clamp(26px,7vw,36px); height:clamp(26px,7vw,36px); fill:#ffd600; animation:starPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275) forwards; opacity:0; }
+.lc-star.grey { fill:rgba(255,255,255,0.12); animation:none; opacity:1; }
+@keyframes starPop { 0%{opacity:0;transform:scale(0) rotate(-30deg)}100%{opacity:1;transform:scale(1) rotate(0)} }
+
+.home-wrap { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding: 4px 0 8px; }
+.home-logo { margin:4px 0 2px; animation:float 3s ease-in-out infinite; flex-shrink:0; }
+.home-logo svg { width: clamp(50px,13vw,76px); height: clamp(50px,13vw,76px); }
+@keyframes float { 0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)} }
+.home-title { font-size:clamp(24px,7vw,34px); font-weight:900; color:white; margin-bottom:1px; text-shadow:0 0 24px rgba(124,77,255,0.7); flex-shrink:0; }
+.home-sub { font-size:clamp(12px,3.2vw,14px); color:rgba(255,255,255,0.4); margin-bottom:2px; flex-shrink:0; }
+.brand-tag { font-size:10px; color:rgba(255,255,255,0.2); margin-bottom:12px; letter-spacing:1px; text-transform:uppercase; flex-shrink:0; }
+
+.section-label { font-size:10px; color:rgba(255,255,255,0.3); margin-bottom:6px; align-self:flex-start; max-width:380px; font-weight:800; letter-spacing:1px; text-transform:uppercase; width:100%; max-width:380px; }
+
+.gamemode-row { display:flex; gap:8px; width:100%; max-width:380px; margin-bottom:12px; flex-shrink:0; }
+.gamemode-card { flex:1; background:rgba(255,255,255,0.04); border-radius:14px; padding:10px 8px; text-align:center; cursor:pointer; border:1.5px solid rgba(255,255,255,0.07); transition:all 0.2s; }
+.gamemode-card.selected { border-color:#7c4dff; background:rgba(124,77,255,0.14); box-shadow:0 0 16px rgba(124,77,255,0.2); }
+.gamemode-icon { font-size: clamp(20px,5.5vw,26px); margin-bottom:2px; }
+.gamemode-name { font-size:clamp(11px,3vw,13px); font-weight:800; color:white; }
+.gamemode-desc { font-size:9px; color:rgba(255,255,255,0.35); margin-top:1px; line-height:1.3; }
+
+.mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; max-width:380px; margin-bottom:10px; flex-shrink:0; }
+.mode-card { background:rgba(255,255,255,0.04); border-radius:14px; padding:clamp(8px,2.5vw,14px) 8px; text-align:center; cursor:pointer; border:1.5px solid rgba(255,255,255,0.07); transition:all 0.2s; }
+.mode-card.selected { border-color:#7c4dff; background:rgba(124,77,255,0.12); box-shadow:0 0 16px rgba(124,77,255,0.2); }
+.mode-icon svg { width:clamp(24px,7vw,34px); height:clamp(24px,7vw,34px); }
+.mode-name { font-size:clamp(11px,3vw,13px); font-weight:800; color:white; margin-top:4px; }
+.mode-desc { font-size:9px; color:rgba(255,255,255,0.35); margin-top:1px; }
+
+.diff-row { display:flex; gap:6px; margin-bottom:12px; width:100%; max-width:380px; flex-shrink:0; }
+.diff-btn { flex:1; padding:clamp(6px,2vw,9px) 4px; border-radius:10px; border:1.5px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); font-size:clamp(10px,2.8vw,12px); font-weight:700; cursor:pointer; transition:all 0.2s; color:rgba(255,255,255,0.5); }
+.diff-btn.active { background:linear-gradient(135deg,#5c6bc0,#7c4dff); color:white; border-color:transparent; box-shadow:0 4px 14px rgba(124,77,255,0.4); }
+
+.start-btn { background:linear-gradient(135deg,#5c6bc0 0%,#7c4dff 50%,#e040fb 100%); color:white; border:none; border-radius:16px; font-size:clamp(15px,4vw,18px); font-weight:900; padding:clamp(10px,3vw,14px) 40px; cursor:pointer; transition:all 0.2s; box-shadow:0 6px 24px rgba(124,77,255,0.5); letter-spacing:0.3px; width:100%; max-width:380px; flex-shrink:0; }
+.start-btn:active { transform:scale(0.98); }
+
+.footer-brand { font-size:9px; color:rgba(255,255,255,0.12); text-align:center; padding:8px 0 2px; flex-shrink:0; margin-top:auto; }
+
+.final-win { position:absolute; top:0;left:0;right:0;bottom:0; background:linear-gradient(145deg,#1a1a2e,#0d0d1a); display:none; align-items:center; justify-content:center; flex-direction:column; gap:8px; z-index:30; padding:16px; overflow-y:auto; }
+.final-win.show { display:flex; }
+.fw-trophy svg { width:clamp(70px,18vw,100px); height:clamp(70px,18vw,100px); }
+.fw-title { font-size:clamp(20px,5.5vw,28px); font-weight:900; color:white; text-align:center; }
+.fw-sub { font-size:clamp(12px,3.2vw,15px); color:rgba(255,255,255,0.45); text-align:center; }
+.fw-score { font-size:clamp(15px,4vw,19px); font-weight:800; color:#ffd600; text-align:center; }
+.fw-btns { display:flex; flex-direction:column; gap:8px; width:100%; max-width:280px; margin-top:6px; }
+.fw-btn { padding:12px; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer; border:none; transition:all 0.2s; }
+.fw-btn.primary { background:linear-gradient(135deg,#5c6bc0,#7c4dff); color:white; }
+.fw-btn.secondary { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.15); }
+
+.teacher-panel { position:absolute; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:25; padding:16px; }
+.teacher-panel.open { display:flex; }
+.teacher-card { background:#1a1a2e; border-radius:20px; padding:20px; width:100%; max-width:300px; border:1px solid rgba(255,255,255,0.08); max-height:90%; overflow-y:auto; }
+.teacher-card h3 { font-size:16px; font-weight:800; margin-bottom:12px; color:white; }
+.stat-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:13px; }
+.stat-label { color:rgba(255,255,255,0.45); }
+.stat-val { font-weight:800; color:white; }
+.close-panel-btn { margin-top:12px; width:100%; padding:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:11px; font-size:13px; font-weight:700; cursor:pointer; color:rgba(255,255,255,0.6); }
+
+.sound-btn { position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:5; }
+.sound-btn svg { width:14px; height:14px; stroke:rgba(255,255,255,0.6); }
 </style>
 </head>
 <body>
+
+<div class="bg-stars" id="bg-stars"></div>
+
 <div id="game-root">
 
-  <!-- HOME -->
+  <button class="sound-btn" onclick="toggleSound()" id="sound-btn">
+    <svg id="sound-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+    </svg>
+  </button>
+
   <div id="screen-home" class="screen active">
-    <div class="home-logo">🌟</div>
-    <div class="home-title">Star Buddies</div>
-    <div class="home-sub">A gentle learning game for every learner</div>
-    <div class="brand-tag">by Mauna Games</div>
-    <div class="mode-grid" id="mode-grid">
-      <div class="mode-card selected" data-mode="shapes" onclick="selectMode(this,'shapes')">
-        <div class="mode-icon">🔺</div>
-        <div class="mode-name">Shapes</div>
-        <div class="mode-desc">Match the shape</div>
+    <div class="home-wrap">
+      <div class="home-logo">
+        <svg viewBox="0 0 76 76" fill="none">
+          <circle cx="38" cy="38" r="36" fill="#1a1a3e" stroke="rgba(124,77,255,0.5)" stroke-width="2"/>
+          <polygon points="38,10 45,28 65,28 50,40 56,58 38,47 20,58 26,40 11,28 31,28" fill="#ffd600" stroke="#f9a825" stroke-width="1.5"/>
+          <circle cx="32" cy="34" r="3" fill="#1a1a3e"/>
+          <circle cx="44" cy="34" r="3" fill="#1a1a3e"/>
+          <path d="M31 42 Q38 48 45 42" stroke="#1a1a3e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>
       </div>
-      <div class="mode-card" data-mode="colors" onclick="selectMode(this,'colors')">
-        <div class="mode-icon">🎨</div>
-        <div class="mode-name">Colors</div>
-        <div class="mode-desc">Match the color</div>
+      <div class="home-title">Star Buddies</div>
+      <div class="home-sub">Match · Learn · Level Up</div>
+      <div class="brand-tag">by Mauna Games</div>
+
+      <div class="section-label">Play Style</div>
+      <div class="gamemode-row">
+        <div class="gamemode-card selected" id="gm-calm" onclick="selectGameMode(this,'calm')">
+          <div class="gamemode-icon">🧘</div>
+          <div class="gamemode-name">Calm Mode</div>
+          <div class="gamemode-desc">No timer · soft music</div>
+        </div>
+        <div class="gamemode-card" id="gm-challenge" onclick="selectGameMode(this,'challenge')">
+          <div class="gamemode-icon">⚡</div>
+          <div class="gamemode-name">Challenge</div>
+          <div class="gamemode-desc">Timer · upbeat energy</div>
+        </div>
       </div>
-      <div class="mode-card" data-mode="animals" onclick="selectMode(this,'animals')">
-        <div class="mode-icon">🐶</div>
-        <div class="mode-name">Animals</div>
-        <div class="mode-desc">Match the animal</div>
+
+      <div class="section-label">Choose a topic</div>
+      <div class="mode-grid">
+        <div class="mode-card selected" onclick="selectMode(this,'shapes')">
+          <div class="mode-icon"><svg viewBox="0 0 40 40" fill="none"><rect x="6" y="6" width="28" height="28" rx="5" fill="rgba(100,181,246,0.3)" stroke="#64b5f6" stroke-width="2"/><polygon points="20,4 26,16 38,16 28,24 32,36 20,28 8,36 12,24 2,16 14,16" fill="rgba(255,214,0,0.4)" stroke="#ffd600" stroke-width="1.5"/><circle cx="32" cy="10" r="6" fill="rgba(239,83,80,0.3)" stroke="#ef5350" stroke-width="1.5"/></svg></div>
+          <div class="mode-name">Shapes</div><div class="mode-desc">Match the shape</div>
+        </div>
+        <div class="mode-card" onclick="selectMode(this,'colors')">
+          <div class="mode-icon"><svg viewBox="0 0 40 40" fill="none"><circle cx="14" cy="14" r="8" fill="rgba(239,83,80,0.4)" stroke="#ef5350" stroke-width="1.5"/><circle cx="26" cy="14" r="8" fill="rgba(102,187,106,0.4)" stroke="#66bb6a" stroke-width="1.5"/><circle cx="14" cy="26" r="8" fill="rgba(66,165,245,0.4)" stroke="#42a5f5" stroke-width="1.5"/><circle cx="26" cy="26" r="8" fill="rgba(255,238,88,0.4)" stroke="#ffee58" stroke-width="1.5"/></svg></div>
+          <div class="mode-name">Colors</div><div class="mode-desc">Match the color</div>
+        </div>
+        <div class="mode-card" onclick="selectMode(this,'animals')">
+          <div class="mode-icon"><svg viewBox="0 0 40 40" fill="none"><ellipse cx="20" cy="26" rx="13" ry="10" fill="rgba(255,204,128,0.4)" stroke="#ffcc80" stroke-width="1.5"/><circle cx="20" cy="16" r="9" fill="rgba(255,204,128,0.4)" stroke="#ffcc80" stroke-width="1.5"/><polygon points="13,10 10,3 18,8" fill="rgba(255,204,128,0.4)" stroke="#ffcc80" stroke-width="1.5"/><polygon points="27,10 30,3 22,8" fill="rgba(255,204,128,0.4)" stroke="#ffcc80" stroke-width="1.5"/><circle cx="17" cy="16" r="2" fill="#fff"/><circle cx="23" cy="16" r="2" fill="#fff"/></svg></div>
+          <div class="mode-name">Animals</div><div class="mode-desc">Match the animal</div>
+        </div>
+        <div class="mode-card" onclick="selectMode(this,'numbers')">
+          <div class="mode-icon"><svg viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="8" fill="rgba(179,136,255,0.2)" stroke="#b388ff" stroke-width="1.5"/><text x="20" y="27" text-anchor="middle" font-size="18" font-weight="900" fill="#b388ff" font-family="Arial">123</text></svg></div>
+          <div class="mode-name">Numbers</div><div class="mode-desc">Match the number</div>
+        </div>
       </div>
-      <div class="mode-card" data-mode="numbers" onclick="selectMode(this,'numbers')">
-        <div class="mode-icon">🔢</div>
-        <div class="mode-name">Numbers</div>
-        <div class="mode-desc">Match the number</div>
+
+      <div class="section-label">Difficulty</div>
+      <div class="diff-row">
+        <button class="diff-btn active" onclick="setDiff(this,'easy')">🌱 Easy</button>
+        <button class="diff-btn" onclick="setDiff(this,'medium')">⭐ Medium</button>
+        <button class="diff-btn" onclick="setDiff(this,'hard')">🚀 Hard</button>
       </div>
+      <button class="start-btn" onclick="startGame()">START GAME 🎮</button>
+      <div class="footer-brand">© 2025 Mauna Games</div>
     </div>
-    <div style="font-size:14px;color:#888;margin-bottom:8px;align-self:flex-start;max-width:360px;">Difficulty</div>
-    <div class="diff-row" style="width:100%;max-width:360px;">
-      <button class="diff-btn active" onclick="setDiff(this,'easy')">🌱 Easy</button>
-      <button class="diff-btn" onclick="setDiff(this,'medium')">⭐ Medium</button>
-      <button class="diff-btn" onclick="setDiff(this,'hard')">🚀 Hard</button>
-    </div>
-    <button class="start-btn" onclick="startGame()">Let's Play! 🎮</button>
-    <div class="footer-brand">© 2025 Mauna Games · Made with ♥ for SEN learners</div>
   </div>
 
-  <!-- GAME -->
   <div id="screen-game" class="screen">
-    <div class="game-header">
-      <div class="stars-display">⭐ <span id="star-count">0</span></div>
-      <div class="level-badge" id="level-badge">Round 1 of 6</div>
-      <button class="teacher-btn" onclick="openTeacher()">👩‍🏫 Teacher</button>
+    <div class="level-banner">
+      <div class="stars-display">
+        <svg class="star-ico" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+        <span id="star-count">0</span>
+      </div>
+      <div class="lvl-badge" id="level-badge">LEVEL 1</div>
+      <div class="mode-toggle-row">
+        <button class="mode-pill" onclick="openTeacher()">📊</button>
+      </div>
     </div>
+
+    <div class="xp-bar-wrap"><div class="xp-bar" id="xp-bar" style="width:0%"></div></div>
+
+    <div class="timer-row" id="timer-row">
+      <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+      <div class="timer-num" id="timer-num">10</div>
+    </div>
+
     <div class="prompt-text" id="prompt-text">Find the matching shape!</div>
     <div class="prompt-sub" id="prompt-sub">Tap the one that matches</div>
-    <div class="target-display" id="target-display">🔴</div>
-    <div class="choices-grid" id="choices-grid"></div>
-    <div class="feedback-bar idle" id="feedback-bar"> </div>
-    <div class="progress-row" id="progress-row"></div>
-  </div>
 
-  <!-- WIN -->
-  <div id="screen-win" class="screen">
-    <div class="win-emoji" id="win-emoji">🎉</div>
-    <div class="win-title" id="win-title">Amazing job!</div>
-    <div class="win-msg" id="win-msg">You finished all the rounds!</div>
-    <div class="win-score" id="win-score">⭐ 5 stars earned</div>
-    <div class="win-btns">
-      <button class="win-btn primary" onclick="startGame()">Play Again 🔁</button>
-      <button class="win-btn secondary" onclick="goHome()">Choose Mode 🏠</button>
+    <div class="mid-area">
+      <div class="target-wrap">
+        <div class="target-display" id="target-display"></div>
+        <div class="find-label">Find this</div>
+        <div class="combo-badge" id="combo-badge">🔥 x2</div>
+      </div>
+
+      <div class="choices-grid" id="choices-grid"></div>
+      <div class="feedback-bar idle" id="feedback-bar"> </div>
+      <div class="progress-row" id="progress-row"></div>
     </div>
-    <div class="footer-brand" style="margin-top:24px;">© 2025 Mauna Games</div>
   </div>
 
-  <!-- TEACHER PANEL -->
+  <div class="level-complete" id="level-complete">
+    <div class="lc-icon" id="lc-icon">🎉</div>
+    <div class="lc-title" id="lc-title">Level Complete!</div>
+    <div class="lc-sub" id="lc-sub">Amazing work!</div>
+    <div class="lc-stars" id="lc-stars"></div>
+    <div class="lc-score" id="lc-score">+50 XP</div>
+    <button class="lc-next" id="lc-next-btn" onclick="nextLevel()">NEXT LEVEL →</button>
+    <button class="lc-retry" id="lc-retry-btn" onclick="retryLevel()" style="display:none">Try Again 🔄</button>
+  </div>
+
+  <div class="final-win" id="final-win">
+    <div class="fw-trophy">
+      <svg viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="46" fill="#1a1a3e" stroke="#ffd600" stroke-width="2"/>
+        <rect x="35" y="65" width="30" height="6" rx="3" fill="#ffd600"/>
+        <rect x="42" y="71" width="16" height="10" rx="2" fill="#ffd600"/>
+        <path d="M30 25 L30 55 Q30 68 50 68 Q70 68 70 55 L70 25 Z" fill="#ffd600" stroke="#f9a825" stroke-width="1.5"/>
+        <path d="M30 30 Q20 30 20 42 Q20 52 30 52" stroke="#ffd600" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M70 30 Q80 30 80 42 Q80 52 70 52" stroke="#ffd600" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <polygon points="50,34 53,42 62,42 55,47 57,55 50,51 43,55 45,47 38,42 47,42" fill="#1a1a3e" stroke="#f9a825" stroke-width="1"/>
+      </svg>
+    </div>
+    <div class="fw-title" id="fw-title">YOU BEAT ALL 20 LEVELS!</div>
+    <div class="fw-sub" id="fw-sub">You're a Star Buddy Champion! 🏆</div>
+    <div class="fw-score" id="fw-score">Total Stars: 120 ⭐</div>
+    <div class="fw-btns">
+      <button class="fw-btn primary" onclick="startGame()">Play Again 🔁</button>
+      <button class="fw-btn secondary" onclick="goHome()">Home 🏠</button>
+    </div>
+    <div class="footer-brand">© 2025 Mauna Games</div>
+  </div>
+
   <div class="teacher-panel" id="teacher-panel">
     <div class="teacher-card">
-      <h3>👩‍🏫 Teacher Dashboard</h3>
-      <div class="stat-row"><span class="stat-label">Current mode</span><span class="stat-val" id="tp-mode">—</span></div>
+      <h3>📊 Stats</h3>
+      <div class="stat-row"><span class="stat-label">Mode</span><span class="stat-val" id="tp-mode">—</span></div>
+      <div class="stat-row"><span class="stat-label">Play style</span><span class="stat-val" id="tp-style">—</span></div>
       <div class="stat-row"><span class="stat-label">Difficulty</span><span class="stat-val" id="tp-diff">—</span></div>
-      <div class="stat-row"><span class="stat-label">Stars earned</span><span class="stat-val" id="tp-stars">—</span></div>
-      <div class="stat-row"><span class="stat-label">Correct answers</span><span class="stat-val" id="tp-correct">—</span></div>
-      <div class="stat-row"><span class="stat-label">Total attempts</span><span class="stat-val" id="tp-attempts">—</span></div>
+      <div class="stat-row"><span class="stat-label">Current Level</span><span class="stat-val" id="tp-level">—</span></div>
+      <div class="stat-row"><span class="stat-label">Total Stars</span><span class="stat-val" id="tp-stars">—</span></div>
+      <div class="stat-row"><span class="stat-label">Correct</span><span class="stat-val" id="tp-correct">—</span></div>
+      <div class="stat-row"><span class="stat-label">Attempts</span><span class="stat-val" id="tp-attempts">—</span></div>
       <div class="stat-row"><span class="stat-label">Accuracy</span><span class="stat-val" id="tp-accuracy">—</span></div>
-      <div class="stat-row"><span class="stat-label">Rounds done</span><span class="stat-val" id="tp-rounds">—</span></div>
-      <div style="font-size:12px;color:#bbb;margin-top:12px;line-height:1.6;">💡 Easy = 2 choices · Medium = 3 · Hard = 4</div>
+      <div class="stat-row"><span class="stat-label">Best Combo</span><span class="stat-val" id="tp-combo">—</span></div>
       <button class="close-panel-btn" onclick="closeTeacher()">Close</button>
     </div>
   </div>
@@ -196,163 +339,410 @@ body {
 </div>
 
 <script>
-const MODES = {
-  shapes: {
-    name:'Shapes', prompt:'Find the matching shape!', sub:'Tap the shape that looks the same',
-    items:[
-      {id:'circle',emoji:'🔵',label:'Circle',color:'#bbdefb'},
-      {id:'triangle',emoji:'🔺',label:'Triangle',color:'#ffe0b2'},
-      {id:'square',emoji:'🟥',label:'Square',color:'#ffccbc'},
-      {id:'star',emoji:'⭐',label:'Star',color:'#fff9c4'},
-      {id:'heart',emoji:'💜',label:'Heart',color:'#f3e5f5'},
-      {id:'diamond',emoji:'💎',label:'Diamond',color:'#e1f5fe'},
-    ]
-  },
-  colors: {
-    name:'Colors', prompt:'Find the matching color!', sub:'Tap the circle with the same color',
-    items:[
-      {id:'red',emoji:'🔴',label:'Red',color:'#ffcdd2'},
-      {id:'blue',emoji:'🔵',label:'Blue',color:'#bbdefb'},
-      {id:'green',emoji:'🟢',label:'Green',color:'#c8e6c9'},
-      {id:'yellow',emoji:'🟡',label:'Yellow',color:'#fff9c4'},
-      {id:'purple',emoji:'🟣',label:'Purple',color:'#e1bee7'},
-      {id:'orange',emoji:'🟠',label:'Orange',color:'#ffe0b2'},
-    ]
-  },
-  animals: {
-    name:'Animals', prompt:'Find the matching animal!', sub:'Tap the animal that looks the same',
-    items:[
-      {id:'cat',emoji:'🐱',label:'Cat',color:'#f3e5f5'},
-      {id:'dog',emoji:'🐶',label:'Dog',color:'#fff3e0'},
-      {id:'rabbit',emoji:'🐰',label:'Rabbit',color:'#e8f5e9'},
-      {id:'fish',emoji:'🐟',label:'Fish',color:'#e1f5fe'},
-      {id:'elephant',emoji:'🐘',label:'Elephant',color:'#ede7f6'},
-      {id:'penguin',emoji:'🐧',label:'Penguin',color:'#e0f7fa'},
-    ]
-  },
-  numbers: {
-    name:'Numbers', prompt:'Find the matching number!', sub:'Tap the number that is the same',
-    items:[
-      {id:'one',emoji:'1️⃣',label:'One',color:'#fff9c4'},
-      {id:'two',emoji:'2️⃣',label:'Two',color:'#ffccbc'},
-      {id:'three',emoji:'3️⃣',label:'Three',color:'#c8e6c9'},
-      {id:'four',emoji:'4️⃣',label:'Four',color:'#bbdefb'},
-      {id:'five',emoji:'5️⃣',label:'Five',color:'#f3e5f5'},
-      {id:'six',emoji:'6️⃣',label:'Six',color:'#ffe0b2'},
-    ]
+(function(){
+  const c=document.getElementById('bg-stars');
+  for(let i=0;i<50;i++){
+    const s=document.createElement('div');
+    s.className='bg-star';
+    const sz=Math.random()*2.5+1;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${2+Math.random()*3}s`;
+    c.appendChild(s);
   }
+})();
+
+function setVH(){ document.documentElement.style.setProperty('--vh', window.innerHeight+'px'); }
+setVH();
+window.addEventListener('resize', setVH);
+window.addEventListener('orientationchange', setVH);
+
+let soundOn=true;
+const AC=window.AudioContext||window.webkitAudioContext;
+let ctx=null;
+function getCtx(){ if(!ctx) ctx=new AC(); if(ctx.state==='suspended') ctx.resume(); return ctx; }
+function tone(freq,type,dur,vol,del=0){
+  if(!soundOn) return;
+  try{
+    const c=getCtx(),o=c.createOscillator(),g=c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.type=type; o.frequency.setValueAtTime(freq,c.currentTime+del);
+    g.gain.setValueAtTime(vol,c.currentTime+del);
+    g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+del+dur);
+    o.start(c.currentTime+del); o.stop(c.currentTime+del+dur);
+  }catch(e){}
+}
+function sndCorrect(){ tone(523,'sine',0.1,0.3); tone(659,'sine',0.12,0.3,0.1); tone(784,'sine',0.2,0.3,0.22); }
+function sndWrong(){ tone(300,'sawtooth',0.08,0.15); tone(240,'sawtooth',0.15,0.12,0.09); }
+function sndCombo(){ tone(659,'sine',0.08,0.3); tone(784,'sine',0.08,0.3,0.08); tone(1047,'sine',0.18,0.35,0.16); tone(1319,'sine',0.22,0.35,0.28); }
+function sndLevelUp(){ [523,587,659,784,880,1047,1175,1319].forEach((f,i)=>tone(f,'sine',0.18,0.28,i*0.09)); }
+function sndFail(){ [400,350,300,250].forEach((f,i)=>tone(f,'sawtooth',0.18,0.2,i*0.1)); }
+function sndWin(){ [523,659,784,1047,1319,1047,784,659,523,659,784,1047,1319,1568].forEach((f,i)=>tone(f,'sine',0.22,0.28,i*0.08)); }
+function sndClick(){ tone(440,'sine',0.06,0.12); }
+function sndTick(){ tone(880,'sine',0.04,0.08); }
+function sndTimeout(){ [500,400,300].forEach((f,i)=>tone(f,'sawtooth',0.15,0.15,i*0.1)); }
+
+// AMBIENT MUSIC ENGINE (loop) - distinct for calm vs challenge
+let musicTimer=null, musicStep=0;
+const CALM_NOTES=[392,440,494,523,587,494,440,392];
+const CHALLENGE_NOTES=[523,523,659,523,587,587,698,587];
+function startMusic(){
+  stopMusic();
+  musicStep=0;
+  const notes = gameMode==='calm' ? CALM_NOTES : CHALLENGE_NOTES;
+  const speed = gameMode==='calm' ? 900 : 420;
+  const vol = gameMode==='calm' ? 0.05 : 0.09;
+  const wave = gameMode==='calm' ? 'sine' : 'triangle';
+  musicTimer=setInterval(()=>{
+    if(!soundOn) return;
+    tone(notes[musicStep % notes.length], wave, speed/1000*0.85, vol);
+    musicStep++;
+  }, speed);
+}
+function stopMusic(){ if(musicTimer){ clearInterval(musicTimer); musicTimer=null; } }
+
+function toggleSound(){
+  soundOn=!soundOn;
+  const i=document.getElementById('sound-icon');
+  i.innerHTML=soundOn
+    ?'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'
+    :'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
+}
+
+const ICONS={
+  circle:  `<svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="24" fill="rgba(100,181,246,0.25)" stroke="#64b5f6" stroke-width="2.5"/><circle cx="30" cy="30" r="16" fill="rgba(100,181,246,0.15)" stroke="#42a5f5" stroke-width="1.5"/></svg>`,
+  triangle:`<svg viewBox="0 0 60 60" fill="none"><polygon points="30,7 55,53 5,53" fill="rgba(255,183,77,0.25)" stroke="#ffb74d" stroke-width="2.5"/><polygon points="30,18 46,46 14,46" fill="rgba(255,183,77,0.15)" stroke="#ffa726" stroke-width="1.5"/></svg>`,
+  square:  `<svg viewBox="0 0 60 60" fill="none"><rect x="7" y="7" width="46" height="46" rx="5" fill="rgba(239,83,80,0.2)" stroke="#ef5350" stroke-width="2.5"/><rect x="16" y="16" width="28" height="28" rx="3" fill="rgba(239,83,80,0.12)" stroke="#e53935" stroke-width="1.5"/></svg>`,
+  star:    `<svg viewBox="0 0 60 60" fill="none"><polygon points="30,5 36.5,22 55,22 40.5,33 46,50 30,40 14,50 19.5,33 5,22 23.5,22" fill="rgba(255,214,0,0.3)" stroke="#ffd600" stroke-width="2"/></svg>`,
+  heart:   `<svg viewBox="0 0 60 60" fill="none"><path d="M30 52 C30 52 5 36 5 20 A13 13 0 0 1 30 15 A13 13 0 0 1 55 20 C55 36 30 52 30 52Z" fill="rgba(240,98,146,0.25)" stroke="#f06292" stroke-width="2.5"/></svg>`,
+  diamond: `<svg viewBox="0 0 60 60" fill="none"><polygon points="30,5 56,30 30,55 4,30" fill="rgba(77,182,172,0.25)" stroke="#4db6ac" stroke-width="2.5"/><polygon points="30,16 45,30 30,44 15,30" fill="rgba(77,182,172,0.12)" stroke="#26a69a" stroke-width="1.5"/></svg>`,
+  red:     `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="#ef5350"/><circle cx="22" cy="22" r="5" fill="rgba(255,255,255,0.2)"/></svg>`,
+  blue:    `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="#42a5f5"/><circle cx="22" cy="22" r="5" fill="rgba(255,255,255,0.2)"/></svg>`,
+  green:   `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="#66bb6a"/><circle cx="22" cy="22" r="5" fill="rgba(255,255,255,0.2)"/></svg>`,
+  yellow:  `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="#ffee58"/><circle cx="30" cy="30" r="26" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="1"/><circle cx="22" cy="22" r="5" fill="rgba(255,255,255,0.3)"/></svg>`,
+  purple:  `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="#ab47bc"/><circle cx="22" cy="22" r="5" fill="rgba(255,255,255,0.2)"/></svg>`,
+  orange:  `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="#ffa726"/><circle cx="22" cy="22" r="5" fill="rgba(255,255,255,0.2)"/></svg>`,
+  cat:     `<svg viewBox="0 0 60 60" fill="none"><ellipse cx="30" cy="37" rx="18" ry="14" fill="rgba(255,204,128,0.3)" stroke="#ffcc80" stroke-width="2"/><circle cx="30" cy="23" r="12" fill="rgba(255,204,128,0.3)" stroke="#ffcc80" stroke-width="2"/><polygon points="20,15 17,6 26,13" fill="rgba(255,204,128,0.3)" stroke="#ffcc80" stroke-width="2"/><polygon points="40,15 43,6 34,13" fill="rgba(255,204,128,0.3)" stroke="#ffcc80" stroke-width="2"/><circle cx="26" cy="23" r="2.5" fill="white"/><circle cx="34" cy="23" r="2.5" fill="white"/><path d="M26 29 Q30 32 34 29" stroke="#ffcc80" stroke-width="1.5" stroke-linecap="round" fill="none"/><line x1="18" y1="26" x2="8" y2="24" stroke="#ffcc80" stroke-width="1.5"/><line x1="18" y1="29" x2="8" y2="29" stroke="#ffcc80" stroke-width="1.5"/><line x1="42" y1="26" x2="52" y2="24" stroke="#ffcc80" stroke-width="1.5"/><line x1="42" y1="29" x2="52" y2="29" stroke="#ffcc80" stroke-width="1.5"/></svg>`,
+  dog:     `<svg viewBox="0 0 60 60" fill="none"><ellipse cx="30" cy="38" rx="17" ry="12" fill="rgba(255,183,77,0.3)" stroke="#ffb74d" stroke-width="2"/><circle cx="30" cy="25" r="12" fill="rgba(255,183,77,0.3)" stroke="#ffb74d" stroke-width="2"/><ellipse cx="19" cy="21" rx="5" ry="8" fill="rgba(255,160,0,0.4)" stroke="#ffb74d" stroke-width="1.5"/><ellipse cx="41" cy="21" rx="5" ry="8" fill="rgba(255,160,0,0.4)" stroke="#ffb74d" stroke-width="1.5"/><circle cx="26" cy="24" r="2.5" fill="white"/><circle cx="34" cy="24" r="2.5" fill="white"/><ellipse cx="30" cy="30" rx="5" ry="3" fill="rgba(239,83,80,0.5)"/><path d="M25 34 Q30 38 35 34" stroke="#ffb74d" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`,
+  rabbit:  `<svg viewBox="0 0 60 60" fill="none"><ellipse cx="30" cy="38" rx="15" ry="13" fill="rgba(206,147,216,0.3)" stroke="#ce93d8" stroke-width="2"/><circle cx="30" cy="26" r="11" fill="rgba(206,147,216,0.3)" stroke="#ce93d8" stroke-width="2"/><ellipse cx="22" cy="11" rx="4" ry="9" fill="rgba(206,147,216,0.3)" stroke="#ce93d8" stroke-width="2"/><ellipse cx="38" cy="11" rx="4" ry="9" fill="rgba(206,147,216,0.3)" stroke="#ce93d8" stroke-width="2"/><ellipse cx="22" cy="11" rx="2" ry="6" fill="rgba(240,98,146,0.4)"/><ellipse cx="38" cy="11" rx="2" ry="6" fill="rgba(240,98,146,0.4)"/><circle cx="26" cy="25" r="2" fill="white"/><circle cx="34" cy="25" r="2" fill="white"/><circle cx="30" cy="30" r="3" fill="rgba(240,98,146,0.6)"/></svg>`,
+  fish:    `<svg viewBox="0 0 60 60" fill="none"><ellipse cx="27" cy="30" rx="18" ry="11" fill="rgba(100,181,246,0.3)" stroke="#64b5f6" stroke-width="2"/><polygon points="48,18 60,30 48,42" fill="rgba(100,181,246,0.4)" stroke="#42a5f5" stroke-width="1.5"/><circle cx="17" cy="27" r="3" fill="white"/><circle cx="17" cy="27" r="1.5" fill="#1565c0"/><path d="M22 33 Q28 37 35 33" stroke="#42a5f5" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`,
+  elephant:`<svg viewBox="0 0 60 60" fill="none"><ellipse cx="30" cy="36" rx="20" ry="16" fill="rgba(176,190,197,0.3)" stroke="#b0bec5" stroke-width="2"/><circle cx="30" cy="23" r="13" fill="rgba(176,190,197,0.3)" stroke="#b0bec5" stroke-width="2"/><ellipse cx="16" cy="18" rx="5" ry="8" fill="rgba(144,164,174,0.4)" stroke="#90a4ae" stroke-width="1.5"/><ellipse cx="44" cy="18" rx="5" ry="8" fill="rgba(144,164,174,0.4)" stroke="#90a4ae" stroke-width="1.5"/><path d="M23 32 Q19 44 23 48" stroke="#90a4ae" stroke-width="3.5" stroke-linecap="round" fill="none"/><circle cx="25" cy="22" r="2.5" fill="white"/><circle cx="35" cy="22" r="2.5" fill="white"/><circle cx="25" cy="22" r="1.2" fill="#37474f"/><circle cx="35" cy="22" r="1.2" fill="#37474f"/></svg>`,
+  penguin: `<svg viewBox="0 0 60 60" fill="none"><ellipse cx="30" cy="37" rx="16" ry="18" fill="#37474f" stroke="#263238" stroke-width="1.5"/><ellipse cx="30" cy="37" rx="10" ry="13" fill="white"/><circle cx="30" cy="21" r="12" fill="#37474f" stroke="#263238" stroke-width="1.5"/><circle cx="26" cy="20" r="2.5" fill="white"/><circle cx="34" cy="20" r="2.5" fill="white"/><circle cx="26" cy="20" r="1.2" fill="#111"/><circle cx="34" cy="20" r="1.2" fill="#111"/><ellipse cx="30" cy="25" rx="3" ry="2" fill="#ff8f00"/><ellipse cx="15" cy="38" rx="6" ry="3.5" fill="#37474f" transform="rotate(-20,15,38)"/><ellipse cx="45" cy="38" rx="6" ry="3.5" fill="#37474f" transform="rotate(20,45,38)"/><ellipse cx="24" cy="53" rx="5" ry="2.5" fill="#ff8f00"/><ellipse cx="36" cy="53" rx="5" ry="2.5" fill="#ff8f00"/></svg>`,
+  one:  `<svg viewBox="0 0 60 60" fill="none"><rect x="4" y="4" width="52" height="52" rx="12" fill="rgba(255,238,88,0.15)" stroke="#ffee58" stroke-width="2"/><text x="30" y="43" text-anchor="middle" font-size="36" font-weight="900" fill="#ffee58" font-family="Arial,sans-serif">1</text></svg>`,
+  two:  `<svg viewBox="0 0 60 60" fill="none"><rect x="4" y="4" width="52" height="52" rx="12" fill="rgba(239,83,80,0.15)" stroke="#ef5350" stroke-width="2"/><text x="30" y="43" text-anchor="middle" font-size="36" font-weight="900" fill="#ef5350" font-family="Arial,sans-serif">2</text></svg>`,
+  three:`<svg viewBox="0 0 60 60" fill="none"><rect x="4" y="4" width="52" height="52" rx="12" fill="rgba(102,187,106,0.15)" stroke="#66bb6a" stroke-width="2"/><text x="30" y="43" text-anchor="middle" font-size="36" font-weight="900" fill="#66bb6a" font-family="Arial,sans-serif">3</text></svg>`,
+  four: `<svg viewBox="0 0 60 60" fill="none"><rect x="4" y="4" width="52" height="52" rx="12" fill="rgba(100,181,246,0.15)" stroke="#64b5f6" stroke-width="2"/><text x="30" y="43" text-anchor="middle" font-size="36" font-weight="900" fill="#64b5f6" font-family="Arial,sans-serif">4</text></svg>`,
+  five: `<svg viewBox="0 0 60 60" fill="none"><rect x="4" y="4" width="52" height="52" rx="12" fill="rgba(179,136,255,0.15)" stroke="#b388ff" stroke-width="2"/><text x="30" y="43" text-anchor="middle" font-size="36" font-weight="900" fill="#b388ff" font-family="Arial,sans-serif">5</text></svg>`,
+  six:  `<svg viewBox="0 0 60 60" fill="none"><rect x="4" y="4" width="52" height="52" rx="12" fill="rgba(255,183,77,0.15)" stroke="#ffb74d" stroke-width="2"/><text x="30" y="43" text-anchor="middle" font-size="36" font-weight="900" fill="#ffb74d" font-family="Arial,sans-serif">6</text></svg>`,
+};
+const BG={
+  circle:'rgba(100,181,246,0.08)',triangle:'rgba(255,183,77,0.08)',square:'rgba(239,83,80,0.08)',
+  star:'rgba(255,214,0,0.08)',heart:'rgba(240,98,146,0.08)',diamond:'rgba(77,182,172,0.08)',
+  red:'rgba(239,83,80,0.08)',blue:'rgba(66,165,245,0.08)',green:'rgba(102,187,106,0.08)',
+  yellow:'rgba(255,238,88,0.06)',purple:'rgba(171,71,188,0.08)',orange:'rgba(255,167,38,0.08)',
+  cat:'rgba(255,204,128,0.08)',dog:'rgba(255,183,77,0.08)',rabbit:'rgba(206,147,216,0.08)',
+  fish:'rgba(100,181,246,0.08)',elephant:'rgba(176,190,197,0.08)',penguin:'rgba(55,71,79,0.2)',
+  one:'rgba(255,238,88,0.08)',two:'rgba(239,83,80,0.08)',three:'rgba(102,187,106,0.08)',
+  four:'rgba(100,181,246,0.08)',five:'rgba(179,136,255,0.08)',six:'rgba(255,183,77,0.08)',
+};
+const MODES={
+  shapes: { name:'Shapes',  prompt:'Find the matching shape!',  sub:'Tap the shape that looks the same',  items:['circle','triangle','square','star','heart','diamond'], labels:{circle:'Circle',triangle:'Triangle',square:'Square',star:'Star',heart:'Heart',diamond:'Diamond'} },
+  colors: { name:'Colors',  prompt:'Find the matching color!',  sub:'Tap the circle with the same color',  items:['red','blue','green','yellow','purple','orange'], labels:{red:'Red',blue:'Blue',green:'Green',yellow:'Yellow',purple:'Purple',orange:'Orange'} },
+  animals:{ name:'Animals', prompt:'Find the matching animal!', sub:'Tap the animal that looks the same',  items:['cat','dog','rabbit','fish','elephant','penguin'], labels:{cat:'Cat',dog:'Dog',rabbit:'Rabbit',fish:'Fish',elephant:'Elephant',penguin:'Penguin'} },
+  numbers:{ name:'Numbers', prompt:'Find the matching number!', sub:'Tap the number that is the same',     items:['one','two','three','four','five','six'], labels:{one:'One',two:'Two',three:'Three',four:'Four',five:'Five',six:'Six'} },
+};
+const FEEDBACK_GREAT=['🔥 ON FIRE!','⚡ BLAZING!','💥 UNSTOPPABLE!','🚀 INCREDIBLE!','✨ PERFECT!','🌟 LEGENDARY!','😎 TOO EASY!','💎 FLAWLESS!'];
+const FEEDBACK_GOOD=['👏 Great job!','⭐ Awesome!','🎯 Nice one!','💪 Keep going!','🙌 You got it!','👍 Well done!','😄 Amazing!','🎉 Yes!!'];
+const FEEDBACK_WRONG=['💪 Try again!','🎯 So close!','😤 Don\'t give up!','🔄 Give it another shot!'];
+
+function getLevelConfig(level){
+  const rounds = level <= 5 ? 4 : level <= 10 ? 5 : level <= 15 ? 6 : 7;
+  const choices = level <= 3 ? 2 : level <= 8 ? 3 : level <= 14 ? 4 : 5;
+  const delay = level <= 5 ? 1300 : level <= 12 ? 1000 : 800;
+  const passAt = Math.ceil(rounds * (level <= 5 ? 0.75 : 0.8));
+  const timeLimit = gameMode==='challenge' ? Math.max(4, 10 - Math.floor(level/3)) : 0;
+  return { rounds, choices, delay, passAt, timeLimit };
+}
+
+let gameMode='calm';
+let state={
+  mode:'shapes', difficulty:'easy',
+  level:1, totalStars:0,
+  round:0, roundsNeeded:4, passAt:3,
+  correctThisLevel:0, attemptsThisLevel:0,
+  totalCorrect:0, totalAttempts:0,
+  combo:0, bestCombo:0,
+  currentAnswer:null, answered:false,
+  cfg:null, timerInterval:null, timeLeft:0
 };
 
-const ROUNDS = 6;
-const CHOICES = {easy:2, medium:3, hard:4};
-let state = { mode:'shapes', difficulty:'easy', round:0, stars:0, correctCount:0, attempts:0, currentAnswer:null, answered:false };
-
-function selectMode(el, mode) {
-  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+function selectGameMode(el, mode){
+  sndClick();
+  document.querySelectorAll('.gamemode-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
-  state.mode = mode;
+  gameMode = mode;
 }
-function setDiff(el, diff) {
-  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  state.difficulty = diff;
-}
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
-}
-function startGame() {
-  state.stars=0; state.round=0; state.correctCount=0; state.attempts=0;
+function selectMode(el,mode){ sndClick(); document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); state.mode=mode; }
+function setDiff(el,diff){ sndClick(); document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); state.difficulty=diff; }
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); }
+function goHome(){ sndClick(); stopMusic(); clearTimerInterval(); document.getElementById('final-win').classList.remove('show'); document.getElementById('level-complete').classList.remove('show'); showScreen('home'); }
+
+function startGame(){
+  sndClick();
+  state.level=1; state.totalStars=0;
+  state.totalCorrect=0; state.totalAttempts=0;
+  state.combo=0; state.bestCombo=0;
+  document.getElementById('final-win').classList.remove('show');
+  document.getElementById('level-complete').classList.remove('show');
+  document.getElementById('timer-row').classList.toggle('show', gameMode==='challenge');
   showScreen('game');
+  startMusic();
+  loadLevel();
+}
+
+function loadLevel(){
+  state.cfg = getLevelConfig(state.level);
+  state.round=0;
+  state.correctThisLevel=0;
+  state.attemptsThisLevel=0;
+  state.combo=0;
+  document.getElementById('level-badge').textContent='LEVEL '+state.level;
+  document.getElementById('xp-bar').style.width=(((state.level-1)/20)*100)+'%';
   buildPips();
   nextRound();
 }
-function goHome() { showScreen('home'); }
-function buildPips() {
-  const row = document.getElementById('progress-row');
-  row.innerHTML = '';
-  for(let i=0;i<ROUNDS;i++){
+
+function buildPips(){
+  const row=document.getElementById('progress-row');
+  row.innerHTML='';
+  for(let i=0;i<state.cfg.rounds;i++){
     const p=document.createElement('div');
     p.className='pip'+(i===0?' current':'');
     p.id='pip-'+i;
     row.appendChild(p);
   }
 }
-function nextRound() {
-  if(state.round>=ROUNDS){ endGame(); return; }
-  const md = MODES[state.mode];
-  const shuffled = [...md.items].sort(()=>Math.random()-0.5);
-  const target = shuffled[0];
-  const n = CHOICES[state.difficulty];
-  const choices = shuffled.slice(0,n).sort(()=>Math.random()-0.5);
-  state.currentAnswer = target.id;
-  state.answered = false;
-  document.getElementById('prompt-text').textContent = md.prompt;
-  document.getElementById('prompt-sub').textContent = md.sub;
-  document.getElementById('level-badge').textContent = 'Round '+(state.round+1)+' of '+ROUNDS;
-  document.getElementById('star-count').textContent = state.stars;
-  const td = document.getElementById('target-display');
-  td.textContent = target.emoji;
-  td.style.background = target.color;
-  const grid = document.getElementById('choices-grid');
+
+function clearTimerInterval(){
+  if(state.timerInterval){ clearInterval(state.timerInterval); state.timerInterval=null; }
+}
+
+function startTimer(){
+  clearTimerInterval();
+  if(gameMode!=='challenge') return;
+  state.timeLeft = state.cfg.timeLimit;
+  const bar=document.getElementById('timer-bar');
+  const num=document.getElementById('timer-num');
+  const total = state.cfg.timeLimit;
+  num.textContent = state.timeLeft;
+  bar.style.width='100%';
+  state.timerInterval = setInterval(()=>{
+    state.timeLeft -= 0.1;
+    if(state.timeLeft<=0){
+      clearTimerInterval();
+      num.textContent='0';
+      bar.style.width='0%';
+      handleTimeout();
+      return;
+    }
+    num.textContent=Math.ceil(state.timeLeft);
+    bar.style.width=((state.timeLeft/total)*100)+'%';
+    if(state.timeLeft<=3 && Math.floor(state.timeLeft*10)%10===0) sndTick();
+  }, 100);
+}
+
+function handleTimeout(){
+  if(state.answered) return;
+  state.answered=true;
+  state.attemptsThisLevel++;
+  state.totalAttempts++;
+  state.combo=0;
+  document.getElementById('combo-badge').classList.remove('show');
+  sndTimeout();
+  const fb=document.getElementById('feedback-bar');
+  fb.textContent='⏰ Time\'s up! Try again!';
+  fb.className='feedback-bar try';
+  state.answered=false;
+  setTimeout(()=>{ startTimer(); }, 100);
+}
+
+function nextRound(){
+  if(state.round>=state.cfg.rounds){ clearTimerInterval(); evaluateLevel(); return; }
+  const md=MODES[state.mode];
+  const items=[...md.items].sort(()=>Math.random()-0.5);
+  const target=items[0];
+  const n=Math.min(state.cfg.choices, items.length);
+  const choices=items.slice(0,n).sort(()=>Math.random()-0.5);
+  state.currentAnswer=target;
+  state.answered=false;
+
+  document.getElementById('prompt-text').textContent=md.prompt;
+  document.getElementById('prompt-sub').textContent='Level '+state.level+' · Round '+(state.round+1)+' of '+state.cfg.rounds;
+
+  const td=document.getElementById('target-display');
+  td.innerHTML=ICONS[target];
+  td.style.background=BG[target];
+
+  const grid=document.getElementById('choices-grid');
   grid.innerHTML='';
-  grid.style.gridTemplateColumns = n===3 ? 'repeat(3,1fr)' : 'repeat(2,1fr)';
+  const cols = n<=2?2 : n===3?3 : n===4?2 : n===5?3:2;
+  grid.style.gridTemplateColumns = 'repeat('+cols+',1fr)';
+
   choices.forEach(item=>{
     const btn=document.createElement('button');
     btn.className='choice-btn';
-    btn.style.background=item.color;
-    btn.innerHTML=item.emoji+'<span class="choice-label">'+item.label+'</span>';
-    btn.onclick=()=>handleChoice(btn,item.id);
+    btn.style.background=BG[item];
+    btn.innerHTML=ICONS[item]+'<span>'+md.labels[item]+'</span>';
+    btn.onclick=()=>handleChoice(btn,item);
     grid.appendChild(btn);
   });
+
   const fb=document.getElementById('feedback-bar');
   fb.textContent=' '; fb.className='feedback-bar idle';
+  document.getElementById('combo-badge').classList.remove('show');
+
+  startTimer();
 }
-function handleChoice(btn,choiceId) {
+
+function handleChoice(btn,choiceId){
   if(state.answered) return;
-  state.answered=true; state.attempts++;
-  const correct = choiceId===state.currentAnswer;
+  state.answered=true;
+  clearTimerInterval();
+  state.attemptsThisLevel++;
+  state.totalAttempts++;
+  const correct=choiceId===state.currentAnswer;
   const fb=document.getElementById('feedback-bar');
+
   if(correct){
-    state.correctCount++; state.stars++;
+    state.correctThisLevel++;
+    state.totalCorrect++;
+    state.totalStars++;
+    state.combo++;
+    if(state.combo>state.bestCombo) state.bestCombo=state.combo;
+
     btn.classList.add('correct');
-    fb.textContent='✅  Amazing! That\'s right!';
+    spawnParticles(btn);
+
+    if(state.combo>=3){
+      sndCombo();
+      const cb=document.getElementById('combo-badge');
+      cb.textContent='🔥 x'+state.combo;
+      cb.classList.add('show');
+    } else {
+      sndCorrect();
+    }
+
+    let msg = state.combo>=4 ? pick(FEEDBACK_GREAT) : pick(FEEDBACK_GOOD);
+    fb.textContent=msg;
     fb.className='feedback-bar good';
-    document.getElementById('star-count').textContent=state.stars;
+    document.getElementById('star-count').textContent=state.totalStars;
+
     const pip=document.getElementById('pip-'+state.round);
     if(pip){pip.classList.remove('current');pip.classList.add('done');}
     const next=document.getElementById('pip-'+(state.round+1));
     if(next) next.classList.add('current');
     state.round++;
-    setTimeout(nextRound,1400);
+    setTimeout(nextRound, state.cfg.delay);
   } else {
+    sndWrong();
+    state.combo=0;
+    document.getElementById('combo-badge').classList.remove('show');
     btn.classList.add('wrong');
-    fb.textContent='💛  Nice try! Tap the right one!';
+    fb.textContent=pick(FEEDBACK_WRONG);
     fb.className='feedback-bar try';
     state.answered=false;
+    setTimeout(()=>{ btn.classList.remove('wrong'); startTimer(); },600);
   }
 }
-function endGame() {
-  const acc = state.attempts>0 ? Math.round((state.correctCount/state.attempts)*100) : 0;
-  const titles=['Amazing job! 🌟','Superstar! 🚀','You did it! 🎊','Brilliant! 💫'];
-  const emojis=['🎉','🏆','🌟','🥳','💫'];
-  document.getElementById('win-title').textContent=titles[Math.floor(Math.random()*titles.length)];
-  document.getElementById('win-emoji').textContent=emojis[Math.floor(Math.random()*emojis.length)];
-  document.getElementById('win-score').textContent='⭐ '+state.stars+' stars earned · '+acc+'% accuracy';
-  showScreen('win');
+
+function evaluateLevel(){
+  stopMusic();
+  const passed = state.correctThisLevel >= state.cfg.passAt;
+  const acc=state.attemptsThisLevel>0?Math.round((state.correctThisLevel/state.attemptsThisLevel)*100):0;
+  const stars = state.correctThisLevel===state.cfg.rounds ? 3 : state.correctThisLevel>=state.cfg.passAt+1 ? 2 : passed ? 1 : 0;
+
+  const lc=document.getElementById('level-complete');
+  const titles = passed ? ['','✅ Level Passed!','🌟 Great Work!','💎 PERFECT!'] : ['❌ Not Quite...'];
+  const subs = passed ? ['','Keep it up!','You\'re doing amazing!','Absolutely flawless!'] : ['You need '+state.cfg.passAt+' correct to pass. Try again!'];
+
+  document.getElementById('lc-icon').textContent=passed?['😢','😊','⭐','🏆'][stars]:'😤';
+  document.getElementById('lc-title').textContent=passed?titles[stars]:'Level Failed';
+  document.getElementById('lc-sub').textContent=passed?subs[stars]:'You got '+state.correctThisLevel+'/'+state.cfg.rounds+'. Need '+state.cfg.passAt+' to pass!';
+  document.getElementById('lc-score').textContent=passed?'⭐ +'+state.correctThisLevel+' stars · '+acc+'% accuracy':'💪 Don\'t give up!';
+
+  const starsRow=document.getElementById('lc-stars');
+  starsRow.innerHTML='';
+  for(let i=1;i<=3;i++){
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 24 24');
+    svg.setAttribute('class','lc-star'+(i<=stars?'':' grey'));
+    if(i<=stars) svg.style.animationDelay=(i*0.15)+'s';
+    svg.innerHTML='<polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>';
+    starsRow.appendChild(svg);
+  }
+
+  document.getElementById('lc-next-btn').style.display=passed?'block':'none';
+  document.getElementById('lc-retry-btn').style.display=passed?'none':'block';
+
+  if(passed){ sndLevelUp(); } else { sndFail(); }
+  lc.classList.add('show');
 }
-function openTeacher() {
-  const acc=state.attempts>0?Math.round((state.correctCount/state.attempts)*100)+'%':'N/A';
+
+function nextLevel(){
+  sndClick();
+  document.getElementById('level-complete').classList.remove('show');
+  if(state.level>=20){ showFinalWin(); return; }
+  state.level++;
+  document.getElementById('xp-bar').style.width=((state.level-1)/20*100)+'%';
+  startMusic();
+  loadLevel();
+}
+function retryLevel(){
+  sndClick();
+  document.getElementById('level-complete').classList.remove('show');
+  startMusic();
+  loadLevel();
+}
+function showFinalWin(){
+  sndWin();
+  const acc=state.totalAttempts>0?Math.round((state.totalCorrect/state.totalAttempts)*100):0;
+  document.getElementById('fw-title').textContent='YOU BEAT ALL 20 LEVELS! 🏆';
+  document.getElementById('fw-sub').textContent='Star Buddy Champion · Best Combo: x'+state.bestCombo;
+  document.getElementById('fw-score').textContent='⭐ '+state.totalStars+' Total Stars · '+acc+'% Accuracy';
+  document.getElementById('final-win').classList.add('show');
+}
+
+function spawnParticles(btn){
+  const rect=btn.getBoundingClientRect();
+  const root=document.getElementById('game-root').getBoundingClientRect();
+  const cx=rect.left-root.left+rect.width/2;
+  const cy=rect.top-root.top+rect.height/2;
+  const colors=['#ffd600','#7c4dff','#e040fb','#64b5f6','#69f0ae','#ff6e40'];
+  for(let i=0;i<10;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    const sz=Math.random()*7+3;
+    const angle=Math.random()*Math.PI*2;
+    const dist=50+Math.random()*50;
+    p.style.cssText=`width:${sz}px;height:${sz}px;left:${cx}px;top:${cy}px;background:${colors[Math.floor(Math.random()*colors.length)]};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;animation-delay:${Math.random()*0.1}s`;
+    document.getElementById('game-root').appendChild(p);
+    setTimeout(()=>p.remove(),900);
+  }
+}
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function openTeacher(){
+  const acc=state.totalAttempts>0?Math.round((state.totalCorrect/state.totalAttempts)*100)+'%':'N/A';
   document.getElementById('tp-mode').textContent=MODES[state.mode].name;
+  document.getElementById('tp-style').textContent=gameMode==='calm'?'Calm Mode':'Challenge Mode';
   document.getElementById('tp-diff').textContent=state.difficulty.charAt(0).toUpperCase()+state.difficulty.slice(1);
-  document.getElementById('tp-stars').textContent=state.stars;
-  document.getElementById('tp-correct').textContent=state.correctCount;
-  document.getElementById('tp-attempts').textContent=state.attempts;
+  document.getElementById('tp-level').textContent=state.level+' / 20';
+  document.getElementById('tp-stars').textContent=state.totalStars;
+  document.getElementById('tp-correct').textContent=state.totalCorrect;
+  document.getElementById('tp-attempts').textContent=state.totalAttempts;
   document.getElementById('tp-accuracy').textContent=acc;
-  document.getElementById('tp-rounds').textContent=state.round+' / '+ROUNDS;
+  document.getElementById('tp-combo').textContent='x'+state.bestCombo;
   document.getElementById('teacher-panel').classList.add('open');
 }
-function closeTeacher() { document.getElementById('teacher-panel').classList.remove('open'); }
+function closeTeacher(){ document.getElementById('teacher-panel').classList.remove('open'); }
 </script>
 </body>
 </html>
